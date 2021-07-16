@@ -6,8 +6,11 @@ import {
   FlatList,
   Alert,
   SafeAreaView,
+  TextInput,
+  Button,
 } from 'react-native';
 import axios from 'axios';
+import InfoCard from './components/InfoCard';
 
 interface dataPoint {
   id: number;
@@ -40,30 +43,33 @@ const App = () => {
   const [renderedData, setRenderedData] = useState<dataPoint[]>([]);
   const [offset, setOffset] = useState(0);
   const [limit, setLimit] = useState(5);
+  const [nameFilter, setNameFilter] = useState('');
 
   const appendNext = () => {
     let tempData: dataPoint[] = renderedData;
     for (let i = offset; i < offset + limit; i++) {
       if (!data[i]) return;
-      //Alert.alert(JSON.stringify(data[i]));
-      tempData.push(data[i]);
+      let name: string = data[i].name.toUpperCase();
+      if (name.indexOf(nameFilter.toUpperCase()) > -1) tempData.push(data[i]);
     }
     setOffset(offset + limit);
     setRenderedData(tempData);
-    Alert.alert(JSON.stringify(renderedData.length));
+    //Alert.alert(JSON.stringify(renderedData.length));
   };
 
   const renderHeader = () => {
     return <Text style={styles.header}>Details of Users</Text>;
   };
 
-  const randomGender = () => {
-    let num: number = Math.floor(Math.random() * 2);
-    return num == 0 ? 'Male' : 'Female';
-  };
-
-  const randomAge = () => {
-    return Math.floor(Math.random() * 60) + 20;
+  const filterNames = () => {
+    let copy: dataPoint[] = data.filter(item => {
+      if (item.id > limit) return false;
+      let name: string = item.name.toUpperCase();
+      if (name.indexOf(nameFilter.toUpperCase()) > -1) {
+        return true;
+      } else return false;
+    });
+    setRenderedData(copy);
   };
 
   useEffect(() => {
@@ -85,22 +91,17 @@ const App = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <TextInput
+        style={styles.input}
+        value={nameFilter}
+        onChangeText={value => setNameFilter(value)}
+        placeholder="Search using name"></TextInput>
+      <Button title="Search" onPress={filterNames}></Button>
       <FlatList
         data={renderedData}
         onEndReached={appendNext}
         onEndReachedThreshold={0.1}
-        renderItem={({item}) => (
-          <View style={styles.infoCard}>
-            <Text style={styles.name}>{item.name}</Text>
-            <Text style={styles.phone}>Ph. Num - {item.phone}</Text>
-            <Text style={styles.address}>
-              Address - {item.address.suite} {item.address.street}{' '}
-              {item.address.city}
-            </Text>
-            <Text>Gender : {randomGender()}</Text>
-            <Text>Age : {randomAge()}</Text>
-          </View>
-        )}
+        renderItem={({item}) => <InfoCard item={item} />}
         keyExtractor={item => item.id.toString()}
         ListHeaderComponent={renderHeader}
       />
@@ -110,14 +111,14 @@ const App = () => {
 
 const styles = StyleSheet.create({
   container: {flex: 1},
-  infoCard: {borderWidth: 2, padding: 20},
-  name: {fontSize: 20},
-  phone: {fontStyle: 'italic'},
-  address: {fontFamily: 'sans-serif', fontStyle: 'italic'},
   header: {
     fontFamily: 'Helvetica',
     fontWeight: 'bold',
     fontSize: 50,
+  },
+  input: {
+    height: 40,
+    borderWidth: 1,
   },
 });
 
