@@ -12,7 +12,7 @@ import {
 import axios from 'axios';
 import InfoCard from './components/InfoCard';
 
-interface dataPoint {
+interface DataPoint {
   id: number;
   name: string;
   username: string;
@@ -36,17 +36,30 @@ interface dataPoint {
   };
 }
 
-const URL = 'https://jsonplaceholder.typicode.com/users';
+interface Post {
+  userId: number;
+  id: number;
+  title: string;
+  body: string;
+}
 
-const App = () => {
-  const [data, setData] = useState<dataPoint[]>([]);
-  const [renderedData, setRenderedData] = useState<dataPoint[]>([]);
+interface IProps {
+  componentId: string;
+}
+
+const URL = 'https://jsonplaceholder.typicode.com/users';
+const URL_Posts = 'https://jsonplaceholder.typicode.com/posts';
+
+const App: React.FC<IProps> = ({componentId}) => {
+  const [data, setData] = useState<DataPoint[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [renderedData, setRenderedData] = useState<DataPoint[]>([]);
   const [offset, setOffset] = useState(0);
   const [limit, setLimit] = useState(5);
   const [nameFilter, setNameFilter] = useState('');
 
   const appendNext = () => {
-    let tempData: dataPoint[] = renderedData;
+    let tempData: DataPoint[] = renderedData;
     for (let i = offset; i < offset + limit; i++) {
       if (!data[i]) return;
       let name: string = data[i].name.toUpperCase();
@@ -62,8 +75,8 @@ const App = () => {
   };
 
   const filterNames = () => {
-    let copy: dataPoint[] = data.filter(item => {
-      if (item.id > limit) return false;
+    let copy: DataPoint[] = data.filter(item => {
+      if (item.id > offset) return false;
       let name: string = item.name.toUpperCase();
       if (name.indexOf(nameFilter.toUpperCase()) > -1) {
         return true;
@@ -72,20 +85,44 @@ const App = () => {
     setRenderedData(copy);
   };
 
-  useEffect(() => {
-    axios
-      .get<dataPoint[]>(URL)
-      .then(response => {
-        let tempData: dataPoint[] = [...response.data];
-        for (let i = 10; i < 50; i++) {
-          let copy = {...response.data[i % 10]};
-          copy.id = i + 1;
-          tempData.push(copy);
-        }
-        setData(tempData);
-      })
-      .catch(error => Alert.alert(error));
+  const deleteCard = (id: number) => {
+    let filteredData: DataPoint[] = data.filter(item => item.id !== id);
+    setData(filteredData);
 
+    filteredData = renderedData.filter(item => item.id !== id);
+    setRenderedData(filteredData);
+  };
+
+  const getPosts = (id: number) => {
+    let userPosts: Post[] = posts.filter(post => post.userId === id);
+    //console.log(userPosts.length);
+    return userPosts;
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        await axios.get<DataPoint[]>(URL).then(response => {
+          let tempData: DataPoint[] = [...response.data];
+          for (let i = 10; i < 50; i++) {
+            let copy = {...response.data[i % 10]};
+            copy.id = i + 1;
+            tempData.push(copy);
+          }
+          setData(tempData);
+          //console.log(data);
+        });
+
+        await axios.get<Post[]>(URL_Posts).then(response => {
+          setPosts(response.data);
+        });
+        //console.log(posts);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    loadData();
     appendNext();
   }, []);
 
@@ -96,12 +133,19 @@ const App = () => {
         value={nameFilter}
         onChangeText={value => setNameFilter(value)}
         placeholder="Search using name"></TextInput>
-      <Button title="Search" onPress={filterNames}></Button>
+      <Button title="Search" onPress={filterNames} color="#841584"></Button>
       <FlatList
         data={renderedData}
         onEndReached={appendNext}
         onEndReachedThreshold={0.1}
-        renderItem={({item}) => <InfoCard item={item} />}
+        renderItem={({item}) => (
+          <InfoCard
+            item={item}
+            deleteCard={deleteCard}
+            posts={getPosts(item.id)}
+            componentId={componentId}
+          />
+        )}
         keyExtractor={item => item.id.toString()}
         ListHeaderComponent={renderHeader}
       />
