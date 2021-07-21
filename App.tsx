@@ -11,37 +11,9 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import InfoCard from './components/InfoCard';
-
-interface DataPoint {
-  id: number;
-  name: string;
-  username: string;
-  email: string;
-  address: {
-    street: string;
-    suite: string;
-    city: string;
-    zipcode: string;
-    geo: {
-      lat: string;
-      lng: string;
-    };
-  };
-  phone: string;
-  website: string;
-  company: {
-    name: string;
-    catchPhrase: string;
-    bs: string;
-  };
-}
-
-interface Post {
-  userId: number;
-  id: number;
-  title: string;
-  body: string;
-}
+import {Navigation} from 'react-native-navigation';
+import {DataPoint} from './interfaces/DataPoint';
+import {Post} from './interfaces/Post';
 
 interface IProps {
   componentId: string;
@@ -54,11 +26,12 @@ const App: React.FC<IProps> = ({componentId}) => {
   const [data, setData] = useState<DataPoint[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
   const [renderedData, setRenderedData] = useState<DataPoint[]>([]);
-  const [offset, setOffset] = useState(0);
-  const [limit, setLimit] = useState(5);
-  const [nameFilter, setNameFilter] = useState('');
+  const [offset, setOffset] = useState<number>(0);
+  const [limit, setLimit] = useState<number>(5);
+  const [nameFilter, setNameFilter] = useState<string>('');
 
   const appendNext = () => {
+    if (offset >= data.length) return;
     let tempData: DataPoint[] = renderedData;
     for (let i = offset; i < offset + limit; i++) {
       if (!data[i]) return;
@@ -99,6 +72,40 @@ const App: React.FC<IProps> = ({componentId}) => {
     return userPosts;
   };
 
+  const appendUser = (user: DataPoint) => {
+    let tempData: DataPoint[] = [user].concat(data);
+
+    setData(tempData);
+
+    let tempRenderedData: DataPoint[] = [user].concat(renderedData);
+
+    setRenderedData(tempRenderedData);
+  };
+
+  const addButtonClick = () => {
+    Navigation.push(componentId, {
+      component: {
+        name: 'AddUser',
+        passProps: {
+          len: data.length,
+          appendUser: appendUser,
+          componentId: componentId,
+        },
+        options: {
+          topBar: {
+            title: {
+              text: 'Add User Page',
+              color: 'white',
+            },
+            background: {
+              color: '#841584',
+            },
+          },
+        },
+      },
+    });
+  };
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -134,6 +141,10 @@ const App: React.FC<IProps> = ({componentId}) => {
         onChangeText={value => setNameFilter(value)}
         placeholder="Search using name"></TextInput>
       <Button title="Search" onPress={filterNames} color="#841584"></Button>
+      <Button
+        title="Add user"
+        onPress={addButtonClick}
+        color="#841584"></Button>
       <FlatList
         data={renderedData}
         onEndReached={appendNext}

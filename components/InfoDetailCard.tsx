@@ -9,37 +9,8 @@ import {
   Alert,
 } from 'react-native';
 import {Navigation} from 'react-native-navigation';
-
-interface Post {
-  userId: number;
-  id: number;
-  title: string;
-  body: string;
-}
-
-interface DataPoint {
-  id: number;
-  name: string;
-  username: string;
-  email: string;
-  address: {
-    street: string;
-    suite: string;
-    city: string;
-    zipcode: string;
-    geo: {
-      lat: string;
-      lng: string;
-    };
-  };
-  phone: string;
-  website: string;
-  company: {
-    name: string;
-    catchPhrase: string;
-    bs: string;
-  };
-}
+import {DataPoint} from '../interfaces/DataPoint';
+import {Post} from '../interfaces/Post';
 
 const UserPost: React.FC<{title: string; body: string}> = ({title, body}) => {
   return (

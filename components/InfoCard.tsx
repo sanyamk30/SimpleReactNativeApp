@@ -1,37 +1,8 @@
 import React from 'react';
 import {View, Text, StyleSheet, Alert, TouchableOpacity} from 'react-native';
 import {Navigation} from 'react-native-navigation';
-
-interface DataPoint {
-  id: number;
-  name: string;
-  username: string;
-  email: string;
-  address: {
-    street: string;
-    suite: string;
-    city: string;
-    zipcode: string;
-    geo: {
-      lat: string;
-      lng: string;
-    };
-  };
-  phone: string;
-  website: string;
-  company: {
-    name: string;
-    catchPhrase: string;
-    bs: string;
-  };
-}
-
-interface Post {
-  userId: number;
-  id: number;
-  title: string;
-  body: string;
-}
+import {DataPoint} from '../interfaces/DataPoint';
+import {Post} from '../interfaces/Post';
 
 const InfoCard: React.FC<{
   item: DataPoint;
