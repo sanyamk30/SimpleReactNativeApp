@@ -23,6 +23,7 @@ const URL = 'https://jsonplaceholder.typicode.com/users';
 const URL_Posts = 'https://jsonplaceholder.typicode.com/posts';
 
 const App: React.FC<IProps> = ({componentId}) => {
+  const [dataLoaded, setDataLoaded] = useState<boolean>(false);
   const [data, setData] = useState<DataPoint[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
   const [renderedData, setRenderedData] = useState<DataPoint[]>([]);
@@ -107,30 +108,25 @@ const App: React.FC<IProps> = ({componentId}) => {
   };
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        await axios.get<DataPoint[]>(URL).then(response => {
-          let tempData: DataPoint[] = [...response.data];
-          for (let i = 10; i < 50; i++) {
-            let copy = {...response.data[i % 10]};
-            copy.id = i + 1;
-            tempData.push(copy);
-          }
-          setData(tempData);
-          //console.log(data);
-        });
-
-        await axios.get<Post[]>(URL_Posts).then(response => {
-          setPosts(response.data);
-        });
-        //console.log(posts);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    loadData();
     appendNext();
+  }, [dataLoaded]);
+
+  useEffect(() => {
+    axios.get<DataPoint[]>(URL).then(response => {
+      let tempData: DataPoint[] = [...response.data];
+      for (let i = 10; i < 50; i++) {
+        let copy = {...response.data[i % 10]};
+        copy.id = i + 1;
+        tempData.push(copy);
+      }
+      setData(tempData);
+      setDataLoaded(true);
+    });
+
+    axios.get<Post[]>(URL_Posts).then(response => {
+      setPosts(response.data);
+    });
+    //console.log(posts);
   }, []);
 
   return (
